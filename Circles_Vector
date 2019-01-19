@@ -1,0 +1,118 @@
+# Author: Justin Zhang 
+# Objected Oriented Programming 
+# 1/18/2019
+
+# I made PVectors to represent the location and speed of all objects in hope of creating
+# better movements for the circles. I have not figured out how to modify the 
+# collisionManager yet, but included some psuedo code. 
+
+import random
+from itertools import combinations  # I got help from Nikhil Suresh for this
+import math
+
+
+game_objects = []
+is_playing = True
+
+class Circle:
+    def __init__(self, x, y):
+        '''Create a new circle at the given x,y point with a random speed,
+        color, and size.'''
+        self.location = PVector(x, y)
+        self.velocity = PVector(random.randint(-5,5), random.randint(-5,5))
+        self.color = color(random.randint(0,255),
+                           random.randint(0,255),
+                           random.randint(0,255))
+        self.size = random.randint(5,75)
+
+    def update(self):
+        '''Update current location by speed.'''
+        self.location.add(self.velocity)
+        
+        '''Enable self to bounce back while it hits the boundary'''
+        if self.location.x > 400-self.size/2 or self.location.x <0+self.size/2:
+            self.velocity.x = -1*self.velocity.x
+            
+        if self.location.y > 400-self.size/2 or self.location.y <0+self.size/2:
+            self.velocity.y = -1*self.velocity.y
+            
+    def draw(self):
+        '''Draw self on the canvas.'''
+
+        fill(self.color) # set shape color
+        stroke(0,0,0) # add a black outline
+        ellipse(self.location.x, self.location.y, self.size, self.size)
+
+def collisionManager():
+    for group in list(combinations(game_objects, 2)):
+        c1 = group[0]
+        c2 = group[1]
+        # for the 4 lines of code above, I used help from Nikhil Suresh. He told me about the
+        # itertool and combination codes
+        distance_vector = PVector(c1.location.x-c2.location.x, c1.location.y-c2.location.y)
+        if distance_vector.x <= c1.size/2+c2.size/2 or distance_vector.y <= c1.size/2+c2.size/2:
+            c1.velocity.x *= -1
+            c2.velocity.x *= -1
+            c1.velocity.y *= -1
+            c2.velocity.y *= -1 
+        # for the five lines of code above, I plan to accomplish: 
+        # (1) calculate distance between circles
+        # (2) determine if circles are overlapping
+        # (3) figure out a way to change the speed of the circles according to physics
+            # - potentially using something related to projection?
+                                        
+def sign(x):
+    if x > 0:
+        return 1.
+    elif x < 0:
+        return -1.
+    elif x == 0:
+        return 0.
+    else:
+        return x
+
+def addCircle():
+    '''Add a new circle where the user clicked.'''
+
+    global game_objects
+    game_objects.append(Circle(mouseX, mouseY))
+
+
+def reset():
+    '''Clear all game objects.'''
+
+    global game_objects
+    game_objects = []
+
+
+def setup():
+    size(400, 400)
+
+
+def draw():
+    '''Clear the screen, have all game objects update and redraw.'''
+
+    global game_objects
+    
+    background(255, 255, 255) # draw a white background
+    
+    '''Enable each game object to do its action (aka update and draw)'''
+    if is_playing == True:
+        for game_object in game_objects:
+            game_object.update()
+            game_object.draw()
+            collisionManager()
+    
+def changeState():
+    if is_playing == True:
+        return False
+    else:
+        return True
+                        
+def keyPressed():
+    if key == 'c':
+        addCircle()
+    if key == 'r':
+        reset()
+    if key == 'p':
+        changeState()
