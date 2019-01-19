@@ -1,0 +1,121 @@
+# Author: Justin Zhang 
+# Objected Oriented Programming 
+# 1/18/2019
+
+# I created a function named "collisionManager", which detects two circles when they
+# collide and reserves the speed of the circles.
+# Note: this code works better within 3-7 circles. There might be some bugs, but it
+# would become normal after around 30 seconds of waiting
+
+
+import random
+from itertools import combinations # Note: I got help from Nikhil Suresh on importing 
+                                   # this library and using it to list combinations
+import math
+
+game_objects = []
+is_playing = True
+
+vector = [1,2]
+
+class Circle:
+    def __init__(self, x, y):
+        '''Create a new circle at the given x,y point with a random speed,
+        color, and size.'''
+        self.x = x
+        self.y = y
+        self.x_speed = random.randint(-5,5)
+        self.y_speed = random.randint(-5,5)
+        self.color = color(random.randint(0,255),
+                           random.randint(0,255),
+                           random.randint(0,255))
+        self.size = random.randint(5,75)
+
+    def update(self):
+        '''Update current location by speed.'''
+        self.x += self.x_speed
+        self.y += self.y_speed
+        
+        '''Enable self to bounce back while it hits the boundary'''
+        if self.x > 400-self.size/2 or self.x <0+self.size/2:
+            self.x_speed = -1*self.x_speed
+            
+        if self.y > 400-self.size/2 or self.y <0+self.size/2:
+            self.y_speed = -1*self.y_speed
+            
+    def draw(self):
+        '''Draw self on the canvas.'''
+
+        fill(self.color) # set shape color
+        stroke(0,0,0) # add a black outline
+        ellipse(self.x, self.y, self.size, self.size)
+
+def collisionManager():
+    for group in list(combinations(game_objects, 2)):
+        c1 = group[0]
+        c2 = group[1]
+        distance = math.sqrt(math.pow(c1.x-c2.x, 2)+math.pow(c1.y-c2.y, 2))
+        # Note: I got help from Nikhil Suresh for how to list the combinations 
+        # when creating this function
+        if distance <= c1.size/2 +c2.size/2:
+            c1.x_speed *= -1
+            c2.x_speed *= -1
+            c1.y_speed *= -1
+            c2.y_speed *= -1
+                                        
+def sign(x):
+    if x > 0:
+        return 1.
+    elif x < 0:
+        return -1.
+    elif x == 0:
+        return 0.
+    else:
+        return x
+
+def addCircle():
+    '''Add a new circle where the user clicked.'''
+
+    global game_objects
+    game_objects.append(Circle(mouseX, mouseY))
+
+
+def reset():
+    '''Clear all game objects.'''
+
+    global game_objects
+    game_objects = []
+
+
+def setup():
+    size(400, 400)
+
+
+def draw():
+    '''Clear the screen, have all game objects update and redraw.'''
+
+    global game_objects
+    
+    background(255, 255, 255) # draw a white background
+    
+    '''Enable each game object to do its action (aka update and draw)'''
+    if is_playing == True:
+        for game_object in game_objects:
+            game_object.update()
+            game_object.draw()
+            collisionManager()
+
+        
+def changeState():
+    if is_playing == True:
+        return False
+    else:
+        return True
+                        
+def keyPressed():
+    if key == 'c':
+        addCircle()
+    if key == 'r':
+        reset()
+    if key == 'p':
+        changeState(is_playing)
